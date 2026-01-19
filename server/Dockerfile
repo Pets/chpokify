@@ -7,6 +7,7 @@ WORKDIR /home
 COPY package.json .
 COPY tsconfig.json .
 COPY webpack.config.js .
+COPY babel.config.js .
 
 COPY server/package.json ./server/package.json
 COPY packages/api-schemas/package.json ./packages/api-schemas/package.json
