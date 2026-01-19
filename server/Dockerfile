@@ -16,18 +16,21 @@ COPY packages/i18n/package.json ./packages/i18n/package.json
 
 RUN yarn install --frozen-lockfile || yarn install
 
+# Install tsc-alias for path alias resolution in compiled output
+RUN yarn add -W tsc-alias
+
 # Copy all source code
 COPY server/ ./server/
 COPY packages/ ./packages/
 
-# Install tsconfig-paths for runtime path alias resolution (workspace root)
-RUN yarn add -W tsconfig-paths
-
-# Set working directory to server
+# Set working directory to server for compilation
 WORKDIR /home/server
+
+# Compile TypeScript to JavaScript (reduces runtime memory usage)
+RUN yarn tsc --project tsconfig.build.json && yarn tsc-alias -p tsconfig.build.json
 
 # Expose port
 EXPOSE 8083
 
-# Run with ts-node and tsconfig-paths for path alias support
-CMD ["node", "-r", "ts-node/register", "-r", "tsconfig-paths/register", "index.ts"]
+# Run compiled JavaScript (much lower memory footprint)
+CMD ["node", "dist/index.js"]
