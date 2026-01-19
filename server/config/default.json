@@ -1,0 +1,43 @@
+{
+  "app": {
+    "shutdownTime": 10000,
+    "confirmEmailExpiration": "24h",
+    "resetPasswordExpiration": "1h",
+    "inviteToSpaceExpiration": "5 days"
+  },
+  "google": {
+    "webClientId": "238943843598-9iefbdc3npjlpsndj2aooch979djru26.apps.googleusercontent.com",
+    "iOSClientId": "238943843598-lk5mgc601mkfu2uhim3ev2erftmb2227.apps.googleusercontent.com"
+  },
+  "apple": {
+    "clientId": "com.chpokify.web",
+    "redirectURI": "https://chpokify.xyz"
+  },
+  "poker": {
+    "userRemoveOnlineInterval": 300000,
+    "userSetOnlineInterval": 5000
+  },
+  "jira": {
+    "applicationName": "Chpokify",
+    "consumerKey": "c09caf10-3c5c-4427-b127-1d11f497bb1b",
+    "consumerName": "Chpokify"
+  },
+  "intercom": {
+    "appId": "zmsti56u",
+    "identitySecret": "rJyXkNiMS7t_i7wAx0GxcWQo3pSya4J-UD8qMbHY"
+  },
+  "jitsi": {
+    "host": "jitsi.chpokify.tech"
+  },
+  "tagManager": {
+    "trackingId": ""
+  },
+  "retro": {
+    "templates": {
+      "wentWellGoWell": { "type": "wentWellGoWell" },
+      "startStopContinue": { "type": "startStopContinue" },
+      "madSadGlad": { "type": "madSadGlad" },
+      "custom": { "type": "custom" }
+    }
+  }
+}

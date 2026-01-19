@@ -27,8 +27,16 @@ COPY packages/ ./packages/
 ENV NODE_OPTIONS="--openssl-legacy-provider"
 RUN yarn server:build
 
+# Copy config files for node-config (JSON files for runtime)
+RUN mkdir -p /home/config
+RUN cp /home/server/config/*.json /home/config/
+
 # Expose port
 EXPOSE 8083
+
+# Set config directory and clear NODE_OPTIONS for runtime
+ENV NODE_CONFIG_DIR="/home/config"
+ENV NODE_OPTIONS=""
 
 # Run the bundled JavaScript
 CMD ["node", "server/build/index.js"]
