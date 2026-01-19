@@ -289,7 +289,7 @@ const reveal = createHandler(async (
   const { teamId } = req.params;
 
   const pokerSessionService = new PokerSessionService(pokerSession);
-  await pokerSessionService.revealTeam(story._id, teamId);
+  await pokerSessionService.revealTeam(story._id, teamId as string);
 
   jiraQueue.add(QUEUE_JOB_NAME.JIRA_SET_FIELD_ISSUE, {
     pokerSession,

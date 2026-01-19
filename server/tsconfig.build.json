@@ -3,7 +3,10 @@
   "compilerOptions": {
     "noEmit": false,
     "outDir": "./dist",
-    "rootDir": "./"
+    "rootDir": "./",
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false
   },
   "exclude": [
     "node_modules",

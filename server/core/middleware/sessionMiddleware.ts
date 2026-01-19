@@ -6,7 +6,7 @@ const MongoStore = connectMongo(createSession);
 
 const SESSION_TTL_SEC = 0.5 * 365 * 24 * 60 * 60;
 
-const sessionMiddleware = createSession({
+const sessionMiddleware: ReturnType<typeof createSession> = createSession({
   store: new MongoStore({
     mongooseConnection: mongoose.connection,
     ttl: SESSION_TTL_SEC,
