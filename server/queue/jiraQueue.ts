@@ -6,13 +6,19 @@ import Queue from 'bull';
 import { log } from '@core/lib/logger';
 import { QUEUE, QUEUE_JOB_NAME, TJiraSetFieldIssue } from '@core/types';
 
-const jiraQueue = new Queue(QUEUE.JIRA,
-  {
-    redis: {
-      port: Number.parseInt(process.env.REDIS_PORT as string, 10),
-      host: process.env.REDIS_HOST,
-    },
-  });
+const redisConfig: any = {
+  port: Number.parseInt(process.env.REDIS_PORT as string, 10),
+  host: process.env.REDIS_HOST,
+};
+
+// Add password if provided (for Upstash or other managed Redis)
+if (process.env.REDIS_PASSWORD) {
+  redisConfig.password = process.env.REDIS_PASSWORD;
+}
+
+const jiraQueue = new Queue(QUEUE.JIRA, {
+  redis: redisConfig,
+});
 
 jiraQueue.process(QUEUE_JOB_NAME.JIRA_SET_FIELD_ISSUE, async (job, done) => {
   const {
