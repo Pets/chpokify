@@ -22,6 +22,8 @@ COPY server/ ./server/
 COPY packages/ ./packages/
 
 # Build with webpack (bundles everything including @chpokify/* packages)
+# Use legacy OpenSSL provider for webpack 5.x compatibility with Node 20
+ENV NODE_OPTIONS="--openssl-legacy-provider"
 RUN yarn server:build
 
 # Expose port
