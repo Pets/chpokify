@@ -20,8 +20,8 @@ RUN yarn install --frozen-lockfile || yarn install
 COPY server/ ./server/
 COPY packages/ ./packages/
 
-# Install tsconfig-paths for runtime path alias resolution
-RUN yarn add tsconfig-paths
+# Install tsconfig-paths for runtime path alias resolution (workspace root)
+RUN yarn add -W tsconfig-paths
 
 # Set working directory to server
 WORKDIR /home/server
