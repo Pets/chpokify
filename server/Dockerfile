@@ -23,14 +23,15 @@ RUN yarn add -W tsc-alias
 COPY server/ ./server/
 COPY packages/ ./packages/
 
-# Set working directory to server for compilation
+# Compile TypeScript to JavaScript from server directory
 WORKDIR /home/server
-
-# Compile TypeScript to JavaScript (reduces runtime memory usage)
 RUN yarn tsc --project tsconfig.build.json && yarn tsc-alias -p tsconfig.build.json
+
+# Go back to workspace root so node_modules/@chpokify/* symlinks work
+WORKDIR /home
 
 # Expose port
 EXPOSE 8083
 
-# Run compiled JavaScript (much lower memory footprint)
-CMD ["node", "dist/index.js"]
+# Run compiled JavaScript from workspace root
+CMD ["node", "server/dist/index.js"]
