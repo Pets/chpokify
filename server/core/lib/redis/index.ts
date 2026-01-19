@@ -10,6 +10,7 @@ const redisConfig: any = {
 // Add password if provided (for Upstash or other managed Redis)
 if (process.env.REDIS_PASSWORD) {
   redisConfig.password = process.env.REDIS_PASSWORD;
+  redisConfig.tls = {}; // Upstash requires TLS
 }
 
 const redis = new Redis(redisConfig);
