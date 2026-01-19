@@ -19,20 +19,13 @@ const errSerializer: Serializer = (err: Error) => ({
 });
 
 const options: LoggerOptions = {
-  env: process.env.NODE_ENV as string,
-  name: process.env.LOGGER_NAME as string,
-  project: process.env.LOGGER_PROJECT as string,
+  env: process.env.NODE_ENV || 'production',
+  name: process.env.LOGGER_NAME || 'chpokify-server',
+  project: process.env.LOGGER_PROJECT || 'chpokify',
   streams: [
     {
-      level: process.env.LOGGER_LEVEL as LogLevelString,
+      level: (process.env.LOGGER_LEVEL as LogLevelString) || 'info',
       stream: process.stdout,
-    },
-    {
-      type: 'rotating-file',
-      level: 'error',
-      path: '/var/log/server.log',
-      period: '1w',
-      count: 3,
     },
   ],
   serializers: {
