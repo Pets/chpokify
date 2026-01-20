@@ -82,36 +82,16 @@ const nextConfig = {
 };
 
 if (isStandalone) {
-  // STANDALONE BUILD: No plugins, just raw Next.js config with output: 'standalone'
-  // This ensures Next.js generates server.js in .next/standalone/
+  // STANDALONE BUILD: Use next-transpile-modules but ensure output: 'standalone' is preserved
+  const withTM = require('next-transpile-modules')(transpilePackages);
+  
+  // Create the config with output: 'standalone' AFTER applying withTM
+  const standaloneConfig = withTM(nextConfig);
+  
+  // Force output: 'standalone' - withTM might not preserve it
   module.exports = {
-    ...nextConfig,
+    ...standaloneConfig,
     output: 'standalone',
-    // For Next.js 12, we need to handle transpilation via webpack
-    webpack: (config, options) => {
-      // First apply the base webpack config
-      config.output.globalObject = '(typeof self !== \'undefined\' ? self : this)';
-      
-      config.module.rules.push({
-        test: /\.worker\.*/,
-        loader: 'worker-loader',
-        options: {
-          filename: 'static/[hash].worker.js',
-          publicPath: '/_next/',
-        },
-      });
-
-      // Transpile @chpokify packages
-      transpilePackages.forEach(pkg => {
-        config.module.rules.push({
-          test: /\.(js|jsx|ts|tsx)$/,
-          include: new RegExp(`node_modules[/\\\\]${pkg.replace('/', '[/\\\\]')}`),
-          use: [options.defaultLoaders.babel],
-        });
-      });
-
-      return config;
-    },
   };
 } else {
   // NON-STANDALONE BUILD: Use plugins for local development
