@@ -94,10 +94,12 @@ if (isStandalone) {
       // These packages are in ../packages/ relative to frontend
       const packagesDir = path.join(__dirname, '../packages');
       
+      // Use Next.js's default loader (SWC in 12.3+) for transpilation
       config.module.rules.push({
         test: /\.(tsx?|jsx?)$/,
         include: [packagesDir],
-        use: [defaultLoaders.babel],
+        use: defaultLoaders.babel ? [defaultLoaders.babel] : [],
+        // Let Next.js handle these files with its default loader
       });
 
       // Make sure webpack resolves these packages correctly

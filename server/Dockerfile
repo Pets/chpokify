@@ -28,8 +28,8 @@ COPY packages/ ./packages/
 # Set STANDALONE_BUILD to enable standalone output mode
 ENV STANDALONE_BUILD=true
 
-# Debug: Print the resolved Next.js config to verify output: 'standalone' is set
-RUN cd /home/frontend && node -e "const c = require('./next.config.js'); console.log('Next.js config output:', c.output);"
+# Debug: Print the FULL resolved Next.js config
+RUN cd /home/frontend && node -e "const c = require('./next.config.js'); console.log('=== NEXT CONFIG ==='); console.log('output:', c.output); console.log('experimental:', JSON.stringify(c.experimental)); console.log('typeof config:', typeof c); console.log('=== END CONFIG ===');"
 
 RUN yarn frontend run build
 
