@@ -1,23 +1,23 @@
 // const { withSentryConfig } = require('@sentry/nextjs');
-const withTM = require('next-transpile-modules')([
-  '@chpokify/helpers',
-  '@chpokify/api-schemas',
-  '@chpokify/models-types',
-  '@chpokify/routing',
-]);
 const shortid = require('shortid');
 
 const { i18n } = require('./next-i18next.config');
 
 const BUILD_ID = shortid();
 
-// For standalone builds (Docker), we use a simplified config
+// For standalone builds (Docker), we use a simplified config without plugins
 const isStandalone = process.env.STANDALONE_BUILD === 'true';
+
+// Packages to transpile - used by next-transpile-modules for non-standalone builds
+const transpilePackages = [
+  '@chpokify/helpers',
+  '@chpokify/api-schemas',
+  '@chpokify/models-types',
+  '@chpokify/routing',
+];
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // CRITICAL: output must be at the top level for Next.js to recognize it
-  output: isStandalone ? 'standalone' : undefined,
   i18n,
   eslint: {
     ignoreDuringBuilds: true,
@@ -81,9 +81,43 @@ const nextConfig = {
   },
 };
 
-// Only add workbox/offline config for non-standalone builds
-if (!isStandalone) {
+if (isStandalone) {
+  // STANDALONE BUILD: No plugins, just raw Next.js config with output: 'standalone'
+  // This ensures Next.js generates server.js in .next/standalone/
+  module.exports = {
+    ...nextConfig,
+    output: 'standalone',
+    // For Next.js 12, we need to handle transpilation via webpack
+    webpack: (config, options) => {
+      // First apply the base webpack config
+      config.output.globalObject = '(typeof self !== \'undefined\' ? self : this)';
+      
+      config.module.rules.push({
+        test: /\.worker\.*/,
+        loader: 'worker-loader',
+        options: {
+          filename: 'static/[hash].worker.js',
+          publicPath: '/_next/',
+        },
+      });
+
+      // Transpile @chpokify packages
+      transpilePackages.forEach(pkg => {
+        config.module.rules.push({
+          test: /\.(js|jsx|ts|tsx)$/,
+          include: new RegExp(`node_modules[/\\\\]${pkg.replace('/', '[/\\\\]')}`),
+          use: [options.defaultLoaders.babel],
+        });
+      });
+
+      return config;
+    },
+  };
+} else {
+  // NON-STANDALONE BUILD: Use plugins for local development
+  const withTM = require('next-transpile-modules')(transpilePackages);
   const withOffline = require('next-offline');
+  
   nextConfig.workboxOpts = {
     swDest: process.env.NEXT_EXPORT
       ? 'service-worker.js'
@@ -121,8 +155,6 @@ if (!isStandalone) {
       },
     ],
   };
+  
   module.exports = withTM(withOffline(nextConfig));
-} else {
-  // Standalone build: simple config with just transpile-modules
-  module.exports = withTM(nextConfig);
 }
