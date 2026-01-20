@@ -35,6 +35,7 @@ const withCustomExtends = (
   const config = {
     ...providedExports,
     i18n,
+    output: 'standalone',
     eslint: {
       ignoreDuringBuilds: true,
     },
@@ -111,6 +112,11 @@ const withCustomExtends = (
         {
           source: '/socket.worker.js',
           destination: '/_next/socket.worker.js',
+        },
+        // Proxy API requests to Express backend
+        {
+          source: '/api/:path*',
+          destination: 'http://localhost:8083/api/:path*',
         },
       ];
     },
