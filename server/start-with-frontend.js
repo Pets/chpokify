@@ -4,34 +4,95 @@ const fs = require('fs');
 
 // Paths in Docker container (working directory is /home)
 const STANDALONE_DIR = '/home/frontend/.next/standalone';
-const FRONTEND_SERVER = path.join(STANDALONE_DIR, 'server.js');
 const BACKEND_SERVER = path.join('/home', 'server/build/index.js');
 
-// Koyeb provides PORT env var (usually 8000)
-const KOYEB_PORT = process.env.PORT || '8000';
+// Backend always uses port 8083 internally (ignore any PORT env var for backend)
 const BACKEND_PORT = '8083';
 
+// Frontend uses Koyeb's PORT, but must be different from backend
+// Koyeb typically provides PORT=8000, but if user misconfigured PORT=8083, use 8000 instead
+let FRONTEND_PORT = process.env.PORT || '8000';
+if (FRONTEND_PORT === BACKEND_PORT) {
+  console.warn('WARNING: PORT env var conflicts with backend port. Using 8000 for frontend.');
+  FRONTEND_PORT = '8000';
+}
+
+// Find server.js - in monorepos, Next.js may place it in a subdirectory
+function findServerJs(baseDir) {
+  // Try common locations
+  const possiblePaths = [
+    path.join(baseDir, 'server.js'),
+    path.join(baseDir, 'frontend', 'server.js'),
+    path.join(baseDir, 'home', 'frontend', 'server.js'),
+  ];
+  
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      return { serverPath: p, cwd: path.dirname(p) };
+    }
+  }
+  
+  // Search recursively as fallback
+  function searchDir(dir, depth = 0) {
+    if (depth > 3) return null;
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isFile() && entry.name === 'server.js') {
+          return path.join(dir, entry.name);
+        }
+      }
+      for (const entry of entries) {
+        if (entry.isDirectory() && entry.name !== 'node_modules' && entry.name !== '.next') {
+          const found = searchDir(path.join(dir, entry.name), depth + 1);
+          if (found) return found;
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
+  
+  const found = searchDir(baseDir);
+  if (found) {
+    return { serverPath: found, cwd: path.dirname(found) };
+  }
+  
+  return null;
+}
+
+const frontendInfo = findServerJs(STANDALONE_DIR);
+
 console.log('=== Starting Chpokify servers ===');
-console.log('Frontend standalone dir:', STANDALONE_DIR);
-console.log('Frontend server.js:', FRONTEND_SERVER);
+console.log('Standalone base dir:', STANDALONE_DIR);
+console.log('Frontend server.js:', frontendInfo ? frontendInfo.serverPath : 'NOT FOUND');
+console.log('Frontend cwd:', frontendInfo ? frontendInfo.cwd : 'N/A');
 console.log('Backend path:', BACKEND_SERVER);
-console.log('Frontend port (Koyeb PORT):', KOYEB_PORT);
+console.log('Frontend port:', FRONTEND_PORT);
 console.log('Backend port (internal):', BACKEND_PORT);
 
-// Verify files exist
-if (!fs.existsSync(FRONTEND_SERVER)) {
-  console.error('ERROR: Frontend server.js not found at:', FRONTEND_SERVER);
-  console.log('Listing standalone directory contents:');
+if (!frontendInfo) {
+  console.error('ERROR: Cannot find server.js in standalone directory');
+  console.log('Listing standalone directory contents recursively:');
   try {
-    const files = fs.readdirSync(STANDALONE_DIR);
-    console.log(files);
+    const listDir = (dir, prefix = '') => {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      entries.forEach(e => {
+        console.log(prefix + e.name + (e.isDirectory() ? '/' : ''));
+        if (e.isDirectory() && e.name !== 'node_modules') {
+          try { listDir(path.join(dir, e.name), prefix + '  '); } catch {}
+        }
+      });
+    };
+    listDir(STANDALONE_DIR);
   } catch (e) {
     console.error('Cannot read standalone dir:', e.message);
   }
+  process.exit(1);
 }
 
 if (!fs.existsSync(BACKEND_SERVER)) {
   console.error('ERROR: Backend server not found at:', BACKEND_SERVER);
+  process.exit(1);
 }
 
 // Start Express backend on port 8083 (internal)
@@ -53,17 +114,18 @@ backend.on('exit', (code, signal) => {
   console.error('Backend exited with code:', code, 'signal:', signal);
 });
 
-// Wait a bit for backend to start, then start Next.js frontend on Koyeb's PORT
+// Wait a bit for backend to start, then start Next.js frontend
 setTimeout(() => {
-  console.log('Starting Next.js frontend on port', KOYEB_PORT);
+  console.log('Starting Next.js frontend on port', FRONTEND_PORT);
+  console.log('Frontend cwd:', frontendInfo.cwd);
   
-  // Next.js standalone must be run from within the standalone directory
+  // Next.js standalone must be run from within the directory containing server.js
   const frontend = spawn('node', ['server.js'], {
     stdio: 'inherit',
-    cwd: STANDALONE_DIR,
+    cwd: frontendInfo.cwd,
     env: { 
       ...process.env,
-      PORT: KOYEB_PORT,
+      PORT: FRONTEND_PORT,
       HOSTNAME: '0.0.0.0',
       // Point Next.js API calls to the backend
       BASE_API_SSR_URL: `http://localhost:${BACKEND_PORT}`,

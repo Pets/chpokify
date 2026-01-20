@@ -131,6 +131,11 @@ const withCustomExtends = (
 //   release: BUILD_ID,
 // };
 
-const exportConfig = compose(withTM, withOffline, withCustomExtends)(nextConfig);
+// For standalone builds, skip withOffline as it may interfere with standalone output
+const isStandalone = process.env.STANDALONE_BUILD === 'true';
+
+const exportConfig = isStandalone
+  ? compose(withTM, withCustomExtends)(nextConfig)
+  : compose(withTM, withOffline, withCustomExtends)(nextConfig);
 
 module.exports = exportConfig;

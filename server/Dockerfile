@@ -25,14 +25,16 @@ COPY frontend/ ./frontend/
 COPY packages/ ./packages/
 
 # Build frontend (Next.js with standalone output)
+# Set STANDALONE_BUILD to skip next-offline plugin which interferes with standalone output
+ENV STANDALONE_BUILD=true
 RUN yarn frontend run build
 
 # Copy static files to standalone folder (required for Next.js standalone mode)
 RUN cp -r /home/frontend/public /home/frontend/.next/standalone/public 2>/dev/null || true
 RUN mkdir -p /home/frontend/.next/standalone/.next && cp -r /home/frontend/.next/static /home/frontend/.next/standalone/.next/static
 
-# Debug: List standalone contents to verify structure
-RUN echo "=== Standalone directory contents ===" && ls -la /home/frontend/.next/standalone/ && echo "=== Checking for server.js ===" && ls -la /home/frontend/.next/standalone/server.js 2>/dev/null || echo "server.js not found at root"
+# Debug: Find server.js location in standalone output
+RUN echo "=== Finding server.js in standalone ===" && find /home/frontend/.next/standalone -name "server.js" -type f 2>/dev/null && echo "=== Full standalone structure ===" && ls -laR /home/frontend/.next/standalone/ | head -50
 
 # Build backend with webpack (bundles everything including @chpokify/* packages)
 # Use legacy OpenSSL provider for webpack 5.x compatibility with Node 20
