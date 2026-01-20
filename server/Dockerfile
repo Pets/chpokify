@@ -25,8 +25,12 @@ COPY frontend/ ./frontend/
 COPY packages/ ./packages/
 
 # Build frontend (Next.js with standalone output)
-# Set STANDALONE_BUILD to skip next-offline plugin which interferes with standalone output
+# Set STANDALONE_BUILD to enable standalone output mode
 ENV STANDALONE_BUILD=true
+
+# Debug: Print the resolved Next.js config to verify output: 'standalone' is set
+RUN cd /home/frontend && node -e "const c = require('./next.config.js'); console.log('Next.js config output:', c.output);"
+
 RUN yarn frontend run build
 
 # Copy static files to standalone folder (required for Next.js standalone mode)

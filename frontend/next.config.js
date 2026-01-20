@@ -1,14 +1,15 @@
 // const { withSentryConfig } = require('@sentry/nextjs');
+const path = require('path');
 const shortid = require('shortid');
 
 const { i18n } = require('./next-i18next.config');
 
 const BUILD_ID = shortid();
 
-// For standalone builds (Docker), we use a simplified config without plugins
+// For standalone builds (Docker), we use a simplified config
 const isStandalone = process.env.STANDALONE_BUILD === 'true';
 
-// Packages to transpile - used by next-transpile-modules for non-standalone builds
+// Packages to transpile
 const transpilePackages = [
   '@chpokify/helpers',
   '@chpokify/api-schemas',
@@ -16,8 +17,19 @@ const transpilePackages = [
   '@chpokify/routing',
 ];
 
+// Use next-transpile-modules for all builds
+const withTM = require('next-transpile-modules')(transpilePackages);
+
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+const baseConfig = {
+  // CRITICAL: Set output at the top level of the base config
+  output: isStandalone ? 'standalone' : undefined,
+  
+  // For monorepos, tell Next.js where the root is for file tracing
+  experimental: isStandalone ? {
+    outputFileTracingRoot: path.join(__dirname, '../'),
+  } : {},
+  
   i18n,
   eslint: {
     ignoreDuringBuilds: true,
@@ -82,23 +94,14 @@ const nextConfig = {
 };
 
 if (isStandalone) {
-  // STANDALONE BUILD: Use next-transpile-modules but ensure output: 'standalone' is preserved
-  const withTM = require('next-transpile-modules')(transpilePackages);
-  
-  // Create the config with output: 'standalone' AFTER applying withTM
-  const standaloneConfig = withTM(nextConfig);
-  
-  // Force output: 'standalone' - withTM might not preserve it
-  module.exports = {
-    ...standaloneConfig,
-    output: 'standalone',
-  };
+  // STANDALONE BUILD: Just use withTM, no offline plugin
+  // The output: 'standalone' is already set in baseConfig
+  module.exports = withTM(baseConfig);
 } else {
-  // NON-STANDALONE BUILD: Use plugins for local development
-  const withTM = require('next-transpile-modules')(transpilePackages);
+  // NON-STANDALONE BUILD: Add offline plugin
   const withOffline = require('next-offline');
   
-  nextConfig.workboxOpts = {
+  baseConfig.workboxOpts = {
     swDest: process.env.NEXT_EXPORT
       ? 'service-worker.js'
       : 'static/service-worker.js',
@@ -136,5 +139,5 @@ if (isStandalone) {
     ],
   };
   
-  module.exports = withTM(withOffline(nextConfig));
+  module.exports = withTM(withOffline(baseConfig));
 }
