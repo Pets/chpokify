@@ -6,10 +6,10 @@ const { i18n } = require('./next-i18next.config');
 
 const BUILD_ID = shortid();
 
-// For standalone builds (Docker), we use a simplified config
+// For standalone builds (Docker), we skip plugins that break standalone output
 const isStandalone = process.env.STANDALONE_BUILD === 'true';
 
-// Packages to transpile
+// Packages to transpile - these are workspace packages that need to be compiled
 const transpilePackages = [
   '@chpokify/helpers',
   '@chpokify/api-schemas',
@@ -17,19 +17,8 @@ const transpilePackages = [
   '@chpokify/routing',
 ];
 
-// Use next-transpile-modules for all builds
-const withTM = require('next-transpile-modules')(transpilePackages);
-
 /** @type {import('next').NextConfig} */
 const baseConfig = {
-  // CRITICAL: Set output at the top level of the base config
-  output: isStandalone ? 'standalone' : undefined,
-  
-  // For monorepos, tell Next.js where the root is for file tracing
-  experimental: isStandalone ? {
-    outputFileTracingRoot: path.join(__dirname, '../'),
-  } : {},
-  
   i18n,
   eslint: {
     ignoreDuringBuilds: true,
@@ -61,19 +50,6 @@ const baseConfig = {
       'lh6.googleusercontent.com',
     ],
   },
-  webpack: (config) => {
-    config.output.globalObject = '(typeof self !== \'undefined\' ? self : this)';
-
-    config.module.rules.push({
-      test: /\.worker\.*/,
-      loader: 'worker-loader',
-      options: {
-        filename: 'static/[hash].worker.js',
-        publicPath: '/_next/',
-      },
-    });
-    return config;
-  },
   async rewrites() {
     return [
       {
@@ -94,12 +70,66 @@ const baseConfig = {
 };
 
 if (isStandalone) {
-  // STANDALONE BUILD: Just use withTM, no offline plugin
-  // The output: 'standalone' is already set in baseConfig
-  module.exports = withTM(baseConfig);
+  // STANDALONE BUILD: Export plain config WITHOUT any plugins
+  // next-transpile-modules breaks output: 'standalone', so we handle transpilation via webpack
+  module.exports = {
+    ...baseConfig,
+    output: 'standalone',
+    experimental: {
+      outputFileTracingRoot: path.join(__dirname, '../'),
+    },
+    webpack: (config, { isServer, defaultLoaders }) => {
+      config.output.globalObject = '(typeof self !== \'undefined\' ? self : this)';
+
+      config.module.rules.push({
+        test: /\.worker\.*/,
+        loader: 'worker-loader',
+        options: {
+          filename: 'static/[hash].worker.js',
+          publicPath: '/_next/',
+        },
+      });
+
+      // Manually transpile @chpokify/* packages (replaces next-transpile-modules)
+      // These packages are in ../packages/ relative to frontend
+      const packagesDir = path.join(__dirname, '../packages');
+      
+      config.module.rules.push({
+        test: /\.(tsx?|jsx?)$/,
+        include: [packagesDir],
+        use: [defaultLoaders.babel],
+      });
+
+      // Make sure webpack resolves these packages correctly
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@chpokify/helpers': path.join(packagesDir, 'helpers'),
+        '@chpokify/api-schemas': path.join(packagesDir, 'api-schemas'),
+        '@chpokify/models-types': path.join(packagesDir, 'models-types'),
+        '@chpokify/routing': path.join(packagesDir, 'routing'),
+      };
+
+      return config;
+    },
+  };
 } else {
-  // NON-STANDALONE BUILD: Add offline plugin
+  // NON-STANDALONE BUILD: Use plugins for local development
+  const withTM = require('next-transpile-modules')(transpilePackages);
   const withOffline = require('next-offline');
+  
+  baseConfig.webpack = (config) => {
+    config.output.globalObject = '(typeof self !== \'undefined\' ? self : this)';
+
+    config.module.rules.push({
+      test: /\.worker\.*/,
+      loader: 'worker-loader',
+      options: {
+        filename: 'static/[hash].worker.js',
+        publicPath: '/_next/',
+      },
+    });
+    return config;
+  };
   
   baseConfig.workboxOpts = {
     swDest: process.env.NEXT_EXPORT
