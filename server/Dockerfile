@@ -31,6 +31,9 @@ RUN yarn frontend run build
 RUN cp -r /home/frontend/public /home/frontend/.next/standalone/public 2>/dev/null || true
 RUN mkdir -p /home/frontend/.next/standalone/.next && cp -r /home/frontend/.next/static /home/frontend/.next/standalone/.next/static
 
+# Debug: List standalone contents to verify structure
+RUN echo "=== Standalone directory contents ===" && ls -la /home/frontend/.next/standalone/ && echo "=== Checking for server.js ===" && ls -la /home/frontend/.next/standalone/server.js 2>/dev/null || echo "server.js not found at root"
+
 # Build backend with webpack (bundles everything including @chpokify/* packages)
 # Use legacy OpenSSL provider for webpack 5.x compatibility with Node 20
 ENV NODE_OPTIONS="--openssl-legacy-provider"
