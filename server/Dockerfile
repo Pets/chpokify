@@ -31,6 +31,11 @@ ENV STANDALONE_BUILD=true
 # Debug: Print the FULL resolved Next.js config
 RUN cd /home/frontend && node -e "const c = require('./next.config.js'); console.log('=== NEXT CONFIG ==='); console.log('output:', c.output); console.log('experimental:', JSON.stringify(c.experimental)); console.log('typeof config:', typeof c); console.log('=== END CONFIG ===');"
 
+# Disable Sentry server-side instrumentation for standalone builds
+# @sentry/nextjs tries to require 'next' at runtime which doesn't exist in standalone mode
+# Renaming the config file prevents Next.js from loading it during build
+RUN mv /home/frontend/sentry.server.config.js /home/frontend/sentry.server.config.js.disabled 2>/dev/null || true
+
 RUN yarn frontend run build
 
 # Copy static files to standalone folder (required for Next.js standalone mode)
