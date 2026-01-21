@@ -40,6 +40,27 @@ RUN yarn frontend run build
 RUN cp -r /home/frontend/public /home/frontend/.next/standalone/public 2>/dev/null || true
 RUN mkdir -p /home/frontend/.next/standalone/.next && cp -r /home/frontend/.next/static /home/frontend/.next/standalone/.next/static
 
+# CRITICAL: Remove @sentry/nextjs from standalone node_modules
+# It tries to require 'next' at runtime which doesn't exist in standalone builds
+RUN rm -rf /home/frontend/.next/standalone/node_modules/@sentry 2>/dev/null; \
+    rm -rf /home/frontend/.next/standalone/frontend/node_modules/@sentry 2>/dev/null; \
+    rm -rf /home/frontend/.next/standalone/node_modules/@sentry-internal 2>/dev/null; \
+    rm -rf /home/frontend/.next/standalone/frontend/node_modules/@sentry-internal 2>/dev/null; \
+    echo "=== @sentry removal complete ==="
+
+# Create a complete stub for next package to satisfy @sentry/nextjs requires
+# The error shows it checks package.json first, then tries to load dist/server/next.js
+RUN mkdir -p /home/frontend/.next/standalone/frontend/node_modules/next/dist/server && \
+    echo '{"name":"next","version":"12.3.4","main":"dist/server/next.js"}' > /home/frontend/.next/standalone/frontend/node_modules/next/package.json && \
+    echo "module.exports = { default: {} };" > /home/frontend/.next/standalone/frontend/node_modules/next/dist/server/next.js && \
+    echo "=== Created next package stub ==="
+
+# Debug: Verify @sentry is removed and next stub exists
+RUN echo "=== Checking for remaining @sentry ===" && \
+    (find /home/frontend/.next/standalone -type d -name "@sentry*" 2>/dev/null | head -5 || echo "No @sentry found") && \
+    echo "=== Checking next stub ===" && \
+    ls -la /home/frontend/.next/standalone/frontend/node_modules/next/dist/server/ 2>/dev/null || echo "No next stub"
+
 # Debug: Find server.js location in standalone output
 RUN echo "=== Finding server.js in standalone ===" && find /home/frontend/.next/standalone -name "server.js" -type f 2>/dev/null || echo "NO server.js FOUND"
 RUN echo "=== Top-level standalone contents ===" && ls -la /home/frontend/.next/standalone/
