@@ -17,13 +17,13 @@ if (FRONTEND_PORT === BACKEND_PORT) {
   FRONTEND_PORT = '8000';
 }
 
-// Find server.js - in monorepos, Next.js may place it in a subdirectory
+// Find server.js - in monorepos with outputFileTracingRoot, Next.js places it in a subdirectory
 function findServerJs(baseDir) {
-  // Try common locations
+  // Try common locations - monorepo structure mirrors the project path
   const possiblePaths = [
-    path.join(baseDir, 'server.js'),
-    path.join(baseDir, 'frontend', 'server.js'),
-    path.join(baseDir, 'home', 'frontend', 'server.js'),
+    path.join(baseDir, 'server.js'),                           // Direct (no outputFileTracingRoot)
+    path.join(baseDir, 'frontend', 'server.js'),               // Monorepo: /standalone/frontend/server.js
+    path.join(baseDir, 'home', 'frontend', 'server.js'),       // Docker path: /standalone/home/frontend/server.js
   ];
   
   for (const p of possiblePaths) {
@@ -60,6 +60,27 @@ function findServerJs(baseDir) {
   return null;
 }
 
+// First, list what's actually in the standalone directory
+console.log('=== Standalone directory contents ===');
+try {
+  const listDir = (dir, prefix = '') => {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    entries.slice(0, 20).forEach(e => {
+      console.log(prefix + e.name + (e.isDirectory() ? '/' : ''));
+      if (e.isDirectory() && e.name !== 'node_modules' && prefix.length < 6) {
+        try { listDir(path.join(dir, e.name), prefix + '  '); } catch {}
+      }
+    });
+  };
+  if (fs.existsSync(STANDALONE_DIR)) {
+    listDir(STANDALONE_DIR);
+  } else {
+    console.log('STANDALONE_DIR does not exist:', STANDALONE_DIR);
+  }
+} catch (e) {
+  console.log('Error listing standalone dir:', e.message);
+}
+
 const frontendInfo = findServerJs(STANDALONE_DIR);
 
 console.log('=== Starting Chpokify servers ===');
@@ -69,6 +90,7 @@ console.log('Frontend cwd:', frontendInfo ? frontendInfo.cwd : 'N/A');
 console.log('Backend path:', BACKEND_SERVER);
 console.log('Frontend port:', FRONTEND_PORT);
 console.log('Backend port (internal):', BACKEND_PORT);
+console.log('PORT env var:', process.env.PORT);
 
 if (!frontendInfo) {
   console.error('ERROR: Cannot find server.js in standalone directory');

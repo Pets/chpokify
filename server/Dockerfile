@@ -38,7 +38,10 @@ RUN cp -r /home/frontend/public /home/frontend/.next/standalone/public 2>/dev/nu
 RUN mkdir -p /home/frontend/.next/standalone/.next && cp -r /home/frontend/.next/static /home/frontend/.next/standalone/.next/static
 
 # Debug: Find server.js location in standalone output
-RUN echo "=== Finding server.js in standalone ===" && find /home/frontend/.next/standalone -name "server.js" -type f 2>/dev/null && echo "=== Full standalone structure ===" && ls -laR /home/frontend/.next/standalone/ | head -50
+RUN echo "=== Finding server.js in standalone ===" && find /home/frontend/.next/standalone -name "server.js" -type f 2>/dev/null || echo "NO server.js FOUND"
+RUN echo "=== Top-level standalone contents ===" && ls -la /home/frontend/.next/standalone/
+RUN echo "=== Checking for frontend subfolder ===" && ls -la /home/frontend/.next/standalone/frontend/ 2>/dev/null || echo "No frontend subfolder"
+RUN echo "=== Checking for home subfolder ===" && ls -la /home/frontend/.next/standalone/home/ 2>/dev/null || echo "No home subfolder"
 
 # Build backend with webpack (bundles everything including @chpokify/* packages)
 # Use legacy OpenSSL provider for webpack 5.x compatibility with Node 20
