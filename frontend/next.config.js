@@ -109,6 +109,10 @@ if (isStandalone) {
         '@chpokify/api-schemas': path.join(packagesDir, 'api-schemas'),
         '@chpokify/models-types': path.join(packagesDir, 'models-types'),
         '@chpokify/routing': path.join(packagesDir, 'routing'),
+        // Replace @sentry/nextjs with a stub to prevent runtime errors in standalone mode
+        // @sentry/nextjs tries to require 'next' which doesn't exist in standalone builds
+        '@sentry/nextjs': path.join(__dirname, 'lib/sentry-stub.js'),
+        '@sentry/integrations': path.join(__dirname, 'lib/sentry-stub.js'),
       };
 
       return config;
