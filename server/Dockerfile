@@ -37,8 +37,9 @@ RUN cd /home/frontend && node -e "const c = require('./next.config.js'); console
 RUN yarn frontend run build
 
 # Copy static files to standalone folder (required for Next.js standalone mode)
-RUN cp -r /home/frontend/public /home/frontend/.next/standalone/public 2>/dev/null || true
-RUN mkdir -p /home/frontend/.next/standalone/.next && cp -r /home/frontend/.next/static /home/frontend/.next/standalone/.next/static
+# The standalone output has a frontend subfolder due to outputFileTracingRoot
+RUN cp -r /home/frontend/public /home/frontend/.next/standalone/frontend/public 2>/dev/null || true
+RUN mkdir -p /home/frontend/.next/standalone/frontend/.next && cp -r /home/frontend/.next/static /home/frontend/.next/standalone/frontend/.next/static
 
 # CRITICAL: Remove @sentry/nextjs from standalone node_modules
 # It tries to require 'next' at runtime which doesn't exist in standalone builds
