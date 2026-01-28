@@ -7,8 +7,10 @@ import * as Sentry from '@sentry/nextjs';
 
 const SENTRY_DSN = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
 
+// Only initialize Sentry if a DSN is explicitly provided
+// This makes Sentry opt-in: without a DSN, it's a complete no-op
 Sentry.init({
-  enabled: process.env.NODE_ENV === 'production',
+  enabled: Boolean(SENTRY_DSN),
   dsn: SENTRY_DSN,
   // Note: if you want to override the automatic release value, do not set a
   // `release` value here - use the environment variable `SENTRY_RELEASE`, so

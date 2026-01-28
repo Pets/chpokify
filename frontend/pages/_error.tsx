@@ -4,6 +4,7 @@ import React from 'react';
 
 import { TAppPage } from '@Redux/types';
 
+import { isSentryEnabled } from '@lib/sentry-enabled';
 import { Footer } from '@components/domains/layouts/Footer';
 import { Header } from '@components/domains/layouts/Header';
 import { NextCustomError } from '@components/domains/layouts/NextCustomError';
@@ -29,8 +30,10 @@ const CustomErrorPage: TAppPage<TCustomErrorPageInitProps, {}> = (props) => {
     // getInitialProps is not called in case of
     // https://github.com/vercel/next.js/issues/8592. As a workaround, we pass
     // err via _app.js so it can be captured
-    Sentry.captureMessage('ErrorPage');
-    Sentry.captureException(err);
+    if (isSentryEnabled()) {
+      Sentry.captureMessage('ErrorPage');
+      Sentry.captureException(err);
+    }
     // Flushing is not required in this case as it only happens on the client
   }
 
@@ -79,12 +82,14 @@ CustomErrorPage.getInitialProps = async ({
   //    Boundaries: https://reactjs.org/docs/error-boundaries.html
 
   if (err) {
-    Sentry.captureMessage('ErrorPage');
-    Sentry.captureException(err);
+    if (isSentryEnabled()) {
+      Sentry.captureMessage('ErrorPage');
+      Sentry.captureException(err);
 
-    // Flushing before returning is necessary if deploying to Vercel, see
-    // https://vercel.com/docs/platform/limits#streaming-responses
-    await Sentry.flush(FLUSH_TIMEOUT);
+      // Flushing before returning is necessary if deploying to Vercel, see
+      // https://vercel.com/docs/platform/limits#streaming-responses
+      await Sentry.flush(FLUSH_TIMEOUT);
+    }
 
     return errorInitialProps;
   }
@@ -92,10 +97,12 @@ CustomErrorPage.getInitialProps = async ({
   // If this point is reached, getInitialProps was called without any
   // information about what the error might be. This is unexpected and may
   // indicate a bug introduced in Next.js, so record it in Sentry
-  Sentry.captureException(
-    new Error(`_error.js getInitialProps missing data at path: ${asPath}`)
-  );
-  await Sentry.flush(FLUSH_TIMEOUT);
+  if (isSentryEnabled()) {
+    Sentry.captureException(
+      new Error(`_error.js getInitialProps missing data at path: ${asPath}`)
+    );
+    await Sentry.flush(FLUSH_TIMEOUT);
+  }
 
   return errorInitialProps;
 };

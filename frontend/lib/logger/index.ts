@@ -2,6 +2,8 @@ import { objectHelpers } from '@chpokify/helpers/object';
 import { ENVIRONMENT } from '@chpokify/models-types';
 import * as Sentry from '@sentry/nextjs';
 
+import { isSentryEnabled } from '@lib/sentry-enabled';
+
 enum LOG_LEVEL {
   TRACE,
   DEBUG,
@@ -48,21 +50,25 @@ class Logger {
   }
 
   public warn(...args: any[]) {
-    Sentry.captureMessage(JSON.stringify(args));
+    if (isSentryEnabled()) {
+      Sentry.captureMessage(JSON.stringify(args));
+    }
     this.log('warn', LOG_LEVEL.WARN, ...args);
   }
 
   public error(error: Error, errorInfo?: any) {
     this.log('error', LOG_LEVEL.ERROR, JSON.stringify(error));
 
-    const scope = new Sentry.Scope();
-    scope.setContext('error', objectHelpers.toJSON(error));
+    if (isSentryEnabled()) {
+      const scope = new Sentry.Scope();
+      scope.setContext('error', objectHelpers.toJSON(error));
 
-    if (errorInfo) {
-      scope.setContext('errorInfo', errorInfo);
+      if (errorInfo) {
+        scope.setContext('errorInfo', errorInfo);
+      }
+
+      Sentry.captureException(error, scope);
     }
-
-    Sentry.captureException(error, scope);
   }
 }
 

@@ -1,8 +1,34 @@
 // Stub for @sentry/nextjs in standalone builds
 // This prevents the real @sentry/nextjs from loading and trying to require 'next'
 
+const React = require('react');
+
 const noop = () => {};
 const noopPromise = () => Promise.resolve();
+
+// ErrorBoundary stub component - just renders children
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // Log to console in development
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError && this.props.fallback) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 module.exports = {
   init: noop,
@@ -30,4 +56,6 @@ module.exports = {
     Info: 'info',
     Debug: 'debug',
   },
+  // React components
+  ErrorBoundary: ErrorBoundary,
 };
