@@ -5,9 +5,6 @@ const config = {
   },
   payments: {
   },
-  tagManager: {
-    trackingId: 'GTM-W7B6JNZ',
-  },
 };
 
 export default config;

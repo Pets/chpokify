@@ -62,14 +62,6 @@ export default class MyDocument extends Document {
           />
           <link
             rel="preconnect"
-            href="https://www.googletagmanager.com/"
-          />
-          <link
-            rel="preconnect"
-            href="https://connect.facebook.net/"
-          />
-          <link
-            rel="preconnect"
             href="https://js.stripe.com/v3/"
           />
           <ManifestMetaTags />

@@ -26,15 +26,8 @@ const config = {
     consumerKey: 'c09caf10-3c5c-4427-b127-1d11f497bb1b',
     consumerName: 'Chpokify',
   },
-  intercom: {
-    appId: 'zmsti56u',
-    identitySecret: 'rJyXkNiMS7t_i7wAx0GxcWQo3pSya4J-UD8qMbHY',
-  },
   jitsi: {
     host: 'jitsi.chpokify.tech',
-  },
-  tagManager: {
-    trackingId: '',
   },
   retro: {
     templates: {

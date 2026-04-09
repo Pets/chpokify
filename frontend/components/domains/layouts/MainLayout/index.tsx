@@ -10,8 +10,6 @@ import { SideBar } from '@components/domains/layouts/SideBar';
 import { AcceptCookiesBanner } from '@components/domains/marketing/AcceptCookiesBanner';
 import { AddToHomeScreen } from '@components/domains/marketing/AddToHomeScreen';
 import { BannerContainer } from '@components/domains/marketing/BannerContainer';
-import { TagManagerInniter } from '@components/domains/marketing/TagManagerInniter';
-import { GoogleAnaliticsUserProcessor } from '@components/domains/marketing/utils/GoogleAnaliticsUserProcessor';
 import { CurrUserSocketSubscriber } from '@components/domains/user/utils/CurrUserSocketSubscriber';
 
 import { ModalProcessor } from '@components/utils/ModalProcessor';
@@ -37,7 +35,6 @@ const MainLayout = (props: TMainLayoutProps): React.ReactElement | null => {
       currUserId={currUserId}
     >
       <>
-        <TagManagerInniter />
         <ViewHeightProcessor />
         <AfterLoginRedirectProcessor />
         <SyncLogoutProcessor />
@@ -49,7 +46,6 @@ const MainLayout = (props: TMainLayoutProps): React.ReactElement | null => {
         <CurrUserSocketSubscriber />
         <DocumentHiddenProcessor />
         <SentryScopeProcessor />
-        <GoogleAnaliticsUserProcessor />
         <SideBar />
         {children}
         <MobileOverlay />
