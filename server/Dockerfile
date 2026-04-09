@@ -28,7 +28,8 @@ COPY packages/ ./packages/
 # Set STANDALONE_BUILD to enable standalone output mode
 ENV STANDALONE_BUILD=true
 # BASE_API_CLIENT_URL is baked into client JS at build time by next.config.js
-ENV BASE_API_CLIENT_URL=/api
+# Must be empty — frontend routes already include /api/ prefix
+ENV BASE_API_CLIENT_URL=
 
 # Debug: Print the FULL resolved Next.js config
 RUN cd /home/frontend && node -e "const c = require('./next.config.js'); console.log('=== NEXT CONFIG ==='); console.log('output:', c.output); console.log('experimental:', JSON.stringify(c.experimental)); console.log('typeof config:', typeof c); console.log('=== END CONFIG ===');"
