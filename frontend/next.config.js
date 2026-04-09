@@ -65,6 +65,12 @@ const baseConfig = {
         source: '/api/:path*',
         destination: 'http://localhost:8083/api/:path*',
       },
+      // Proxy Socket.IO to Express backend (needed for local dev;
+      // in production Koyeb routes /socket.io directly to Express)
+      {
+        source: '/socket.io/:path*',
+        destination: 'http://localhost:8083/socket.io/:path*',
+      },
     ];
   },
 };

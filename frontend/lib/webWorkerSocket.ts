@@ -60,7 +60,7 @@ class WebWorkerIO {
   public connect() {
     this.worker.postMessage({
       type: 'connect',
-      url: process.env.BASE_API_CLIENT_URL,
+      // No URL: Socket.IO connects to page origin, Koyeb routes /socket.io to Express
       hasLog: process.env.NODE_ENV !== ENVIRONMENT.PRODUCTION,
     });
 

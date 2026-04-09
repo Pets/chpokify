@@ -28,10 +28,14 @@ const log = (method, ...arg) => {
 };
 
 const handleConnect = (data) => {
-  socket = io(data.url, {
+  const opts = {
     transports: ['websocket'],
     reconnectionDelay: 500,
-  });
+  };
+
+  // If no URL provided, Socket.IO connects to the page origin.
+  // Koyeb routes /socket.io/* directly to Express backend.
+  socket = data.url ? io(data.url, opts) : io(opts);
   hasLog = data.hasLog;
 
   log('[sww]: handleConnect', data);
