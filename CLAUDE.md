@@ -79,25 +79,19 @@ Required: `MONGO_CONNECTION_STRING`, `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD
 
 `BASE_API_CLIENT_URL` is set at build time via `next.config.js` `env` — changing it at runtime has no effect on client code.
 
-## Koyeb Deployment (Multi-Port Routing)
+## Koyeb Deployment
 
-Koyeb must be configured with **2 exposed ports** and **3 routes** so that API and Socket.IO requests bypass Next.js and go directly to Express:
+Koyeb only needs **one port exposed**: `8000:http`, path `/`.
 
-```bash
-koyeb service update <app>/<service> \
-  --ports 8000:http --ports 8083:http \
-  --routes /:8000 --routes /api:8083 --routes /socket.io:8083
-```
+`start-with-frontend.js` runs a Node.js reverse proxy on port 8000 that handles routing internally:
 
-| Route | Port | Purpose |
-|-------|------|---------|
-| `/` | 8000 | Next.js frontend (pages, static assets) |
-| `/api` | 8083 | Express REST API |
-| `/socket.io` | 8083 | Socket.IO WebSocket (real-time updates) |
+| Route | Target | Protocol |
+|-------|--------|----------|
+| `/socket.io/*` | Express :8083 | HTTP + WebSocket upgrade |
+| `/api/*` | Express :8083 | HTTP |
+| `/*` | Next.js :3000 | HTTP |
 
-**Important**: Both ports must use protocol `http` (not `http2`) for WebSocket upgrade to work.
-
-The Next.js `/api/*` and `/socket.io/*` rewrites in `next.config.js` remain as fallback for local development.
+This replaces the original nginx reverse proxy. WebSocket upgrades for Socket.IO are handled natively by the proxy's `upgrade` event handler.
 
 ## Git Practices
 
