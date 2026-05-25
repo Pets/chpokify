@@ -2,17 +2,12 @@ import { TInviteTokenPayload } from '@chpokify/models-types';
 import { routing } from '@chpokify/routing';
 import { useTranslation, Trans } from 'next-i18next';
 import React, { FormEvent } from 'react';
-import { useConnect } from 'wagmi';
 
-import { APPLE_AUTH_PLACEMENT, AppleAuthBtn } from '@components/domains/auth/buttons/AppleAuthBtn';
-import { ConnectorBtn } from '@components/domains/auth/buttons/ConnectorBtn';
-import { GOOGLE_AUTH_PLACEMENT, GoogleAuthBtn } from '@components/domains/auth/buttons/GoogleAuthBtn';
 import { InputPassword } from '@components/domains/auth/InputPassword';
 import { Modal } from '@components/domains/shared/Modal';
 
 import { Button } from '@components/uiKit/Button';
 import { Divider } from '@components/uiKit/Divider';
-import { DividerWithText } from '@components/uiKit/DividerWithText';
 import { Flex } from '@components/uiKit/Flex';
 import { FormControl } from '@components/uiKit/FormControl';
 import { FormHelperText } from '@components/uiKit/FormHelperText';
@@ -46,7 +41,6 @@ export type TLogInLayoutProps = {
   hasChanges: boolean;
   isLoading: boolean;
   onSubmit: (event: FormEvent) => void;
-  hasCrypto?: boolean;
 }
 
 const Layout = (props: TLogInLayoutProps): React.ReactElement | null => {
@@ -59,11 +53,9 @@ const Layout = (props: TLogInLayoutProps): React.ReactElement | null => {
     errGlobalMsg,
     isLoading,
     onSubmit,
-    hasCrypto = false,
   } = props;
 
   const { t } = useTranslation(TRANS.MAIN);
-  const { connectors, error } = useConnect();
 
   const renderTitle = () => {
     if (invitePayload) {
@@ -115,52 +107,6 @@ const Layout = (props: TLogInLayoutProps): React.ReactElement | null => {
               }}
             />
           </Text>
-
-          <GoogleAuthBtn
-            placement={GOOGLE_AUTH_PLACEMENT.LOGIN}
-            fullWidth
-            mb={4}
-          />
-
-          <AppleAuthBtn
-            placement={APPLE_AUTH_PLACEMENT.LOGIN}
-            fullWidth
-            mb={4}
-          />
-
-          {
-            hasCrypto && (
-              <>
-                {
-                  connectors.map((connector) => (
-                    <ConnectorBtn
-                      key={connector.id}
-                      connector={connector}
-                      width="100%"
-                      mb={4}
-                    />
-                  ))
-                }
-
-                {
-                  error && (
-                    <FormHelperText
-                      variant="negative"
-                      mb={4}
-                    >
-                      {error.message}
-                    </FormHelperText>
-                  )
-                }
-              </>
-            )
-          }
-
-          <DividerWithText
-            mb={4}
-          >
-            {t('signUp.dividerOAuth')}
-          </DividerWithText>
 
           <FormControl
             errorMessage={errors?.email?.message}

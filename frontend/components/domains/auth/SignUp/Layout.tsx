@@ -8,8 +8,6 @@ import { routing } from '@chpokify/routing';
 import { Trans, useTranslation } from 'next-i18next';
 import React, { FormEvent } from 'react';
 
-import { APPLE_AUTH_PLACEMENT, AppleAuthBtn } from '@components/domains/auth/buttons/AppleAuthBtn';
-import { GOOGLE_AUTH_PLACEMENT, GoogleAuthBtn } from '@components/domains/auth/buttons/GoogleAuthBtn';
 import { DataEncrypted } from '@components/domains/auth/DataEncrypted';
 import { InputPassword } from '@components/domains/auth/InputPassword';
 import { Terms } from '@components/domains/auth/Terms';
@@ -17,7 +15,6 @@ import { CLASS_TEST } from '@components/domains/core/types';
 import { Modal } from '@components/domains/shared/Modal';
 
 import { Button } from '@components/uiKit/Button';
-import { DividerWithText } from '@components/uiKit/DividerWithText';
 import { FormControl } from '@components/uiKit/FormControl';
 import { FormHelperText } from '@components/uiKit/FormHelperText';
 import { IconMailOutline, IconUserAvatar } from '@components/uiKit/Icons';
@@ -124,24 +121,6 @@ const Layout = (props: TSignUpLayoutProps): React.ReactElement | null => {
               }}
             />
           </Text>
-
-          <GoogleAuthBtn
-            fullWidth
-            placement={GOOGLE_AUTH_PLACEMENT.SIGNUP}
-            mb={4}
-          />
-
-          <AppleAuthBtn
-            fullWidth
-            placement={APPLE_AUTH_PLACEMENT.SIGNUP}
-            mb={4}
-          />
-
-          <DividerWithText
-            mb={4}
-          >
-            {t('signUp.dividerOAuth')}
-          </DividerWithText>
 
           <FormControl
             errorMessage={errors?.email?.message}
