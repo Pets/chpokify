@@ -1,10 +1,9 @@
 import { pokerSessionsSchemas, SUCCESS_VOID_RESULT } from '@chpokify/api-schemas';
 import { isEqualsId } from '@chpokify/helpers';
 import { PokerSessionService } from '@pokerSessions/services/PokerSession';
-import { jiraQueue } from '@queue';
 
 import { createHandler } from '@core/middleware/createHandler';
-import { QUEUE_JOB_NAME, TAppRequest, TAppResponse } from '@core/types';
+import { TAppRequest, TAppResponse } from '@core/types';
 
 import { TPokerSessionDocument } from '@models/pokerSession';
 import { TStoryDocument } from '@models/story';
@@ -259,18 +258,11 @@ const revealAll = createHandler(async (
   req: TAppRequest,
   res: TAppResponse<pokerSessionsSchemas.TRevealResResp>
 ) => {
-  const { jiraIntegrations } = req.user;
   const pokerSession = res.locals.get('pokerSession') as TPokerSessionDocument;
   const story = res.locals.get('story') as TStoryDocument;
 
   const pokerSessionService = new PokerSessionService(pokerSession);
   await pokerSessionService.reveal(story._id);
-
-  jiraQueue.add(QUEUE_JOB_NAME.JIRA_SET_FIELD_ISSUE, {
-    pokerSession,
-    story,
-    jiraIntegrations,
-  });
 
   await pokerSession.save();
 
@@ -283,19 +275,12 @@ const reveal = createHandler(async (
   req: TAppRequest,
   res: TAppResponse<pokerSessionsSchemas.TTeamRevealResResp>
 ) => {
-  const { jiraIntegrations } = req.user;
   const pokerSession = res.locals.get('pokerSession') as TPokerSessionDocument;
   const story = res.locals.get('story') as TStoryDocument;
   const { teamId } = req.params;
 
   const pokerSessionService = new PokerSessionService(pokerSession);
   await pokerSessionService.revealTeam(story._id, teamId as string);
-
-  jiraQueue.add(QUEUE_JOB_NAME.JIRA_SET_FIELD_ISSUE, {
-    pokerSession,
-    story,
-    jiraIntegrations,
-  });
 
   await pokerSession.save();
 
@@ -308,7 +293,6 @@ const setTeamScore = createHandler(async (
   req: TAppRequest<{ teamId: string }, pokerSessionsSchemas.TTeamScoresSetBodyReq>,
   res: TAppResponse<pokerSessionsSchemas.TTeamScoresSetResResp>
 ) => {
-  const { jiraIntegrations } = req.user;
   const pokerSession = res.locals.get('pokerSession') as TPokerSessionDocument;
   const story = res.locals.get('story') as TStoryDocument;
   const { scores } = req.body;
@@ -316,12 +300,6 @@ const setTeamScore = createHandler(async (
 
   const pokerSessionService = new PokerSessionService(pokerSession);
   pokerSessionService.setTeamScore(story._id, teamId, scores);
-
-  jiraQueue.add(QUEUE_JOB_NAME.JIRA_SET_FIELD_ISSUE, {
-    pokerSession,
-    story,
-    jiraIntegrations,
-  });
 
   await pokerSession.save();
 

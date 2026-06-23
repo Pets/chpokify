@@ -28,8 +28,6 @@ import '@models/retroSession';
 import '@models/retroTemplate';
 import '@models/retroCard';
 import '@models/retroRelations';
-import '@core/lib/redis';
-import '@queue';
 import { sentryInit } from '@core/lib/sentry';
 
 /* eslint-enable */
