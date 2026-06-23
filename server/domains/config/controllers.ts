@@ -1,6 +1,6 @@
 import { configSchemas } from '@chpokify/api-schemas/configSchemas';
 import {
-  TAppleConfig, TPokerConfig, TRetroConfig, TTagManagerConfig,
+  TAppleConfig, TPokerConfig, TRetroConfig,
 } from '@chpokify/models-types';
 import config from 'config';
 
@@ -13,7 +13,6 @@ const getConfig = createHandler(async (
 ) => {
   const poker = config.get('poker') as TPokerConfig;
   const apple = config.get('apple') as TAppleConfig;
-  const tagManager = config.get('tagManager') as TTagManagerConfig;
   const retro = config.get('retro') as TRetroConfig;
 
   res.locals.result = {
@@ -24,7 +23,6 @@ const getConfig = createHandler(async (
       jitsi: {
         host: config.get('jitsi.host'),
       },
-      tagManager,
       retro,
     },
   };

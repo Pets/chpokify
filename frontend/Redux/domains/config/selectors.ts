@@ -88,12 +88,6 @@ const getAppleRedirectURI = createSelector(
   (apple) => apple.redirectURI
 );
 
-// tag manager
-const getTagManagerTrackingId = createSelector(
-  getData,
-  (config) => config.tagManager.trackingId
-);
-
 const configSelectors = {
   // direct
   getData,
@@ -112,8 +106,6 @@ const configSelectors = {
   getApple,
   getAppleClientId,
   getAppleRedirectURI,
-  // tag manager
-  getTagManagerTrackingId,
   // retro
   getRetro,
   getRetroTemplates,

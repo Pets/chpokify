@@ -24,9 +24,6 @@ const initialState: TState = {
       clientId: '',
       redirectURI: '',
     },
-    tagManager: {
-      trackingId: '',
-    },
     retro: {
       templates: null,
     },

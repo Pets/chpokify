@@ -18,10 +18,6 @@ export type TAppleConfig = {
   redirectURI: string;
 }
 
-export type TTagManagerConfig = {
-  trackingId: string;
-}
-
 export type TRetroConfig = {
   templates:TRetroTemplateData | null
 };
@@ -31,6 +27,5 @@ export type TClientConfig = {
   poker: TPokerConfig;
   jitsi: TJitsiConfig;
   apple: TAppleConfig;
-  tagManager: TTagManagerConfig;
   retro: TRetroConfig;
 }
