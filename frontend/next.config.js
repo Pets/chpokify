@@ -32,7 +32,11 @@ const baseConfig = {
     ENV: process.env.ENV,
   },
   env: {
-    BASE_API_SSR_URL: process.env.BASE_API_SSR_URL,
+    // BASE_API_SSR_URL is intentionally NOT listed here. It is only used in the
+    // server-only (isServer()) branch of lib/api.ts, so it must be read from the
+    // real runtime process.env (set by start-with-frontend.js), not inlined at
+    // build time. Inlining it baked `undefined` into the SSR bundle, which broke
+    // server-side fetches like GET /api/config (source of retro templates).
     BASE_API_CLIENT_URL: process.env.BASE_API_CLIENT_URL,
     APP_COOKIE_SESSION_NAME: process.env.APP_COOKIE_SESSION_NAME,
     CLIENT_SENTRY_DSN: process.env.CLIENT_SENTRY_DSN,
